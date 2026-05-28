@@ -88,8 +88,8 @@ aws sts get-caller-identity --profile nortal-swarm
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/marcinwloch/AgenticSwarmPOC.git
-cd AgenticSwarmPOC
+git clone https://github.com/marcinwloch/KiroAgenticSwarmPOC.git
+cd KiroAgenticSwarmPOC
 ```
 
 ### 2. Configure AWS credentials
