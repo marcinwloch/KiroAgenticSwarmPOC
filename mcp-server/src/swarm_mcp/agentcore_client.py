@@ -36,8 +36,9 @@ class AgentCoreClient:
         if not self.runtime_arn:
             raise AgentCoreConfigError(
                 "SWARM_AGENTCORE_ENDPOINT is not set. "
-                "Add the AgentCore Runtime ARN from info.txt to .kiro/settings/mcp.json "
-                "and reload MCP."
+                "For Kiro: add the Runtime ARN to .kiro/settings/mcp.json and reload MCP. "
+                "For CLI/bootstrap: ensure aws-endpoints.env exists at the repo root "
+                "(or export the variable before running --self-test)."
             )
 
     def invoke(

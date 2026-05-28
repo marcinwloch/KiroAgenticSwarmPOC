@@ -36,8 +36,24 @@ if ($LASTEXITCODE -ne 0) {
 }
 Write-Host "  uv sync OK" -ForegroundColor Green
 
-# Step 3: Smoke test
+# Step 3: Smoke test (load aws-endpoints.env, same vars as .kiro/settings/mcp.json)
 Write-Host "`n[3/3] Running smoke test..." -ForegroundColor Blue
+$envFile = Join-Path $PSScriptRoot "..\aws-endpoints.env"
+if (Test-Path $envFile) {
+    Get-Content $envFile | ForEach-Object {
+        $line = $_.Trim()
+        if ($line -eq "" -or $line.StartsWith("#")) { return }
+        $eq = $line.IndexOf("=")
+        if ($eq -gt 0) {
+            $name = $line.Substring(0, $eq).Trim()
+            $value = $line.Substring($eq + 1).Trim()
+            Set-Item -Path "env:$name" -Value $value
+        }
+    }
+    Write-Host "  Loaded aws-endpoints.env" -ForegroundColor Green
+} else {
+    Write-Host "  WARNING: aws-endpoints.env not found - smoke test may fail" -ForegroundColor Yellow
+}
 uv run python -m swarm_mcp.server --self-test
 if ($LASTEXITCODE -ne 0) {
     Write-Host "  ERROR: smoke test failed" -ForegroundColor Red

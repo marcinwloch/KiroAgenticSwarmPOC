@@ -28,9 +28,18 @@ cd "$REPO_ROOT/mcp-server"
 uv sync --python 3.12 --frozen --no-dev
 echo "  uv sync OK"
 
-# Step 3: Smoke test
+# Step 3: Smoke test (load non-secret endpoints — same vars as .kiro/settings/mcp.json)
 echo ""
 echo "[3/3] Running smoke test..."
+if [ -f "$REPO_ROOT/aws-endpoints.env" ]; then
+    set -a
+    # shellcheck source=/dev/null
+    source "$REPO_ROOT/aws-endpoints.env"
+    set +a
+    echo "  Loaded aws-endpoints.env"
+else
+    echo "  WARNING: aws-endpoints.env not found — smoke test may fail"
+fi
 uv run python -m swarm_mcp.server --self-test
 echo "  Smoke test OK"
 

@@ -393,12 +393,22 @@ Each judge is a lightweight **Nova Lite** LLM that evaluates a specialist's outp
 
 **Quick test (command line):**
 
+Prefer `scripts/bootstrap.ps1` or `scripts/bootstrap.sh` — they load `aws-endpoints.env` before `--self-test`.
+
+Manual run (must set env vars first; Kiro injects these from `.kiro/settings/mcp.json`):
+
 ```bash
+# macOS/Linux
+set -a && source ../aws-endpoints.env && set +a
 cd mcp-server
 uv run python -m swarm_mcp.server --self-test
 ```
 
-Must print: `OK: nortal-swarm-mcp loaded, 8 tools registered`
+```powershell
+# Windows: use .\scripts\bootstrap.ps1 (loads aws-endpoints.env automatically)
+```
+
+Must print: `OK: nortal-swarm-mcp loaded, 8 tools registered` and `config: AgentCore client OK`
 
 ### "AccessDeniedException from Bedrock"
 
