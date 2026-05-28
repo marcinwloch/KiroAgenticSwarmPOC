@@ -2,7 +2,7 @@
 
 <#
 .SYNOPSIS
-    Bootstrap script for Nortal Kiro Swarm demo (Windows PowerShell)
+    Bootstrap script for Marcin Włoch Kiro Swarm demo (Windows PowerShell)
 
 .DESCRIPTION
     Installs uv (if needed), runs uv sync in mcp-server/, and smoke-tests the setup.
@@ -12,7 +12,7 @@
 
 #>
 
-Write-Host "=== Nortal Kiro Swarm Demo Bootstrap ===" -ForegroundColor Cyan
+Write-Host "=== Marcin Włoch Kiro Swarm Demo Bootstrap ===" -ForegroundColor Cyan
 
 # Step 1: Check uv
 Write-Host "`n[1/3] Checking uv..." -ForegroundColor Blue

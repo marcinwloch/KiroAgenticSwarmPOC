@@ -1,8 +1,8 @@
-# Nortal Kiro Swarm PoC — Client Demo
+# Marcin Włoch Kiro Swarm PoC — Client Demo
 
 **Multi-agent system for spec-driven code generation using AWS Bedrock AgentCore + Kiro IDE + Model Context Protocol (MCP).**
 
-This repository contains a working demo of the Nortal Kiro Swarm: a supervisor agent + 4 specialist agents (Architect, Developer, Tester, Reviewer), each with a dedicated LLM-as-Judge, running on AWS Bedrock AgentCore.
+This repository contains a working demo of the Marcin Włoch Kiro Swarm: a supervisor agent + 4 specialist agents (Architect, Developer, Tester, Reviewer), each with a dedicated LLM-as-Judge, running on AWS Bedrock AgentCore.
 
 **What you get:**
 - A FastAPI sample repository (`sample-repo/`) with a working implementation of rate-limiting (already completed by the swarm).
@@ -146,6 +146,11 @@ Or manually stage it:
 5. `swarm.review { session_id }` → Reviewer checks for issues (~1 min)
 6. `swarm.status { session_id }` → Anytime, check progress + judge scores
 
+> **Tip:** A second, not-yet-implemented example spec ships at
+> `.kiro/specs/weather-data-collection/` (requirements + design). Point
+> `swarm.start` at `.kiro/specs/weather-data-collection/requirements.md` to watch
+> the swarm implement a fresh feature end-to-end.
+
 ---
 
 ## Repository Structure
@@ -153,63 +158,66 @@ Or manually stage it:
 ```
 nortal-swarm-demo/
 ├── .kiro/
-│   ├── settings/mcp.json         # MCP configuration for Kiro
+│   ├── settings/mcp.json             # MCP configuration for Kiro
 │   ├── steering/
-│   │   ├── constitution.md       # Development standards (SOLID, DDD, testing)
-│   │   ├── product.md            # Product context
-│   │   ├── structure.md          # Repo layout
-│   │   └── tech.md               # Tech stack notes
+│   │   ├── constitution.md           # Development standards (SOLID, DDD, testing)
+│   │   ├── product.md                # Product context
+│   │   ├── structure.md              # Repo layout
+│   │   └── tech.md                   # Tech stack notes
 │   └── specs/
-│       └── add-rate-limiting.md  # Example spec (rate limit implementation)
+│       ├── add-rate-limiting.md      # Example spec (already implemented in sample-repo)
+│       └── weather-data-collection/  # Example spec (requirements + design, ready to run)
+│           ├── requirements.md       # EARS-style acceptance criteria
+│           ├── design.md             # Technical design
+│           └── .config.kiro          # Kiro spec metadata
 │
-├── agents/                        # Swarm agents (Strands SDK on AgentCore)
-│   ├── supervisor.py             # Orchestrates 4 specialists + judges
-│   ├── specialists/              # Architect, Developer, Tester, Reviewer
-│   ├── judges/                   # LLM judges for each specialist (Nova Lite)
-│   ├── schemas.py, sessions.py   # Data models + DynamoDB helpers
-│   ├── models.py, worker_loop.py # Agent model factory + retry loop
-│   ├── pyproject.toml            # uv-managed Python package
-│   ├── uv.lock                   # Dependency lock file
-│   ├── Dockerfile                # Container for AgentCore runtime
-│   └── requirements.txt           # (Legacy; use uv.lock)
+├── agents/                            # Swarm agents (Strands SDK on AgentCore)
+│   ├── supervisor.py                 # Orchestrates 4 specialists + judges
+│   ├── core_init.py                  # Shared runtime/bootstrap helpers
+│   ├── runtime/
+│   │   └── main.py                   # FastAPI runtime server (AgentCore entry)
+│   ├── specialists/                  # architect.py, developer.py, tester.py, reviewer.py
+│   ├── judges/                       # base_judge.py + one judge per specialist (Nova Lite)
+│   ├── schemas.py, sessions.py       # Data models + DynamoDB helpers
+│   ├── models.py, worker_loop.py     # Agent model factory + retry loop
+│   ├── pyproject.toml                # uv-managed Python package
+│   ├── uv.lock                       # Dependency lock file
+│   ├── Dockerfile                    # Container for AgentCore runtime
+│   └── requirements.txt              # (Legacy; use uv.lock)
 │
-├── mcp-server/                    # Local MCP bridge to AgentCore
+├── mcp-server/                        # Local MCP bridge to AgentCore
 │   ├── src/swarm_mcp/
-│   │   ├── server.py             # Bootstrap + stdio entry
-│   │   ├── tools.py              # 8 tool definitions
-│   │   ├── handlers.py           # Tool dispatchers + call_tool handlers
-│   │   ├── agentcore_client.py   # boto3 wrapper for InvokeAgentRuntime
-│   │   ├── context.py            # Spec + repo snapshot builder
-│   │   └── sessions.py           # DynamoDB session helpers
-│   ├── tests/                    # pytest suite (optional)
-│   ├── pyproject.toml            # uv-managed Python package
-│   ├── uv.lock                   # Dependency lock file
-│   └── __init__.py
+│   │   ├── server.py                 # Bootstrap + stdio entry + --self-test
+│   │   ├── tools.py                  # 8 tool definitions
+│   │   ├── handlers.py               # Tool dispatchers + call_tool handlers
+│   │   ├── agentcore_client.py       # boto3 wrapper for InvokeAgentRuntime
+│   │   ├── context.py                # Spec + repo snapshot builder
+│   │   └── sessions.py               # DynamoDB session helpers
+│   ├── pyproject.toml                # uv-managed Python package
+│   └── uv.lock                       # Dependency lock file
 │
-├── sample-repo/                  # FastAPI task tracker (swarm target)
+├── sample-repo/                       # FastAPI task tracker (swarm target)
 │   ├── app/
-│   │   ├── main.py               # FastAPI app + rate-limit middleware
-│   │   ├── config.py             # Pydantic settings
-│   │   ├── db.py                 # SQLAlchemy + SQLite setup
-│   │   ├── limiter.py            # slowapi rate limiter instance
-│   │   ├── routers/              # /tasks CRUD endpoints
-│   │   ├── models/               # SQLAlchemy ORM models
-│   │   ├── schemas/              # Pydantic request/response
-│   │   └── services/             # Business logic
-│   ├── tests/                    # pytest (test_rate_limit.py, test_tasks.py)
+│   │   ├── main.py                   # FastAPI app + 429 handler + lifespan
+│   │   ├── config.py                 # Pydantic settings
+│   │   ├── db.py                     # SQLAlchemy + SQLite setup
+│   │   ├── limiter.py                # slowapi rate limiter instance
+│   │   ├── dependencies/auth.py      # API key auth dependency
+│   │   ├── routers/tasks.py          # /tasks CRUD endpoints
+│   │   ├── models/task.py            # SQLAlchemy ORM model
+│   │   ├── schemas/task.py           # Pydantic request/response
+│   │   └── services/tasks.py         # Business logic
+│   ├── tests/                        # conftest.py, test_rate_limit.py, test_tasks.py
 │   ├── Dockerfile
-│   └── pyproject.toml            # hatchling (sample app)
+│   └── pyproject.toml                # hatchling (sample app)
 │
 ├── scripts/
-│   ├── bootstrap.ps1             # Windows setup
-│   └── bootstrap.sh              # macOS/Linux setup
+│   ├── bootstrap.ps1                 # Windows setup
+│   └── bootstrap.sh                  # macOS/Linux setup
 │
-├── docs/
-│   └── presentation-en.md        # Full architecture + capacity planning
-│
-├── aws-endpoints.env             # Non-secret AWS endpoints (reference)
+├── aws-endpoints.env                 # Non-secret AWS endpoints (reference)
 ├── .gitignore
-└── README.md                     # (this file)
+└── README.md                         # (this file)
 ```
 
 ---
@@ -364,7 +372,7 @@ Each judge is a lightweight **Nova Lite** LLM that evaluates a specialist's outp
 
 ## Costs & Runtime
 
-**This demo runs on Nortal's AWS account** — you are not billed.
+**This demo runs on Marcin Włoch's AWS account** — you are not billed.
 
 - **Full spec (4 stages)**: ~$0.30–0.60, ~5–10 minutes
 - **Bottleneck**: LLM inference (Claude Sonnet for architects/devs, Nova Lite for judges)
@@ -398,7 +406,7 @@ Must print: `OK: nortal-swarm-mcp loaded, 8 tools registered`
 
 1. AWS credentials: `aws sts get-caller-identity --profile nortal-swarm`
 2. Profile name: Must be `nortal-swarm` (set in mcp.json `AWS_PROFILE`)
-3. Bedrock models enabled in account: (handled by Nortal admin, not your side)
+3. Bedrock models enabled in account: (handled by Marcin Włoch, not your side)
 
 ### "Session timeout or no response"
 
@@ -428,8 +436,9 @@ Rephrase the spec or ensure no secrets are in `.kiro/specs/*.md`.
 
 ### Add a new spec
 
-1. Create `.kiro/specs/my-feature.md` (follow format of `add-rate-limiting.md`)
-2. Add acceptance criteria (Gherkin-light format)
+1. Create `.kiro/specs/my-feature.md` (follow format of `add-rate-limiting.md`, or the
+   richer multi-file layout in `.kiro/specs/weather-data-collection/`)
+2. Add acceptance criteria (EARS / Gherkin-light format)
 3. In Kiro chat: `swarm.start { spec_path: ".kiro/specs/my-feature.md", repo_path: "sample-repo" }`
 4. Run stages or `swarm.implement` (blocks)
 
@@ -451,9 +460,9 @@ The architecture is language-agnostic. To add e.g. **TypeScript + Node**:
 
 ## Support & Questions
 
-- **Technical**: Review docs in `.kiro/steering/` and `docs/presentation-en.md`
-- **Contact Nortal**: [your contact email — provided separately]
-- **Report issues**: Check the troubleshooting section above or ask Nortal team
+- **Technical**: Review docs in `.kiro/steering/` and the example specs in `.kiro/specs/`
+- **Contact**: Marcin Włoch [contact email — provided separately]
+- **Report issues**: Check the troubleshooting section above or reach out to Marcin Włoch
 
 ---
 
@@ -463,4 +472,4 @@ Internal R&D / PoC. Not for distribution.
 
 ---
 
-**Happy coding! 🚀**
+**Happy coding!**
