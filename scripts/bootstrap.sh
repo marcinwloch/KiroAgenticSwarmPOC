@@ -11,7 +11,7 @@ echo "=== Marcin Włoch Kiro Swarm Demo Bootstrap ==="
 
 # Step 1: Check uv
 echo ""
-echo "[1/3] Checking uv..."
+echo "[1/4] Checking uv..."
 if ! command -v uv &> /dev/null; then
     echo "  uv not found. Installing..."
     curl -LsSf https://astral.sh/uv/install.sh | sh
@@ -23,14 +23,19 @@ fi
 
 # Step 2: Sync mcp-server
 echo ""
-echo "[2/3] Running 'uv sync' in mcp-server/..."
+echo "[2/4] Running 'uv sync' in mcp-server/..."
 cd "$REPO_ROOT/mcp-server"
 uv sync --python 3.12 --frozen --no-dev
 echo "  uv sync OK"
 
-# Step 3: Smoke test (load non-secret endpoints — same vars as .kiro/settings/mcp.json)
+# Step 3: Patch Kiro MCP config (Kiro does not expand ${workspaceFolder})
 echo ""
-echo "[3/3] Running smoke test..."
+echo "[3/4] Patching .kiro/settings/mcp.json for Kiro..."
+"$REPO_ROOT/mcp-server/.venv/bin/python" "$SCRIPT_DIR/patch_mcp_config.py"
+
+# Step 4: Smoke test (load aws-endpoints.env)
+echo ""
+echo "[4/4] Running smoke test..."
 if [ -f "$REPO_ROOT/aws-endpoints.env" ]; then
     set -a
     # shellcheck source=/dev/null
@@ -38,7 +43,7 @@ if [ -f "$REPO_ROOT/aws-endpoints.env" ]; then
     set +a
     echo "  Loaded aws-endpoints.env"
 else
-    echo "  WARNING: aws-endpoints.env not found — smoke test may fail"
+    echo "  WARNING: aws-endpoints.env not found - smoke test may fail"
 fi
 uv run python -m swarm_mcp.server --self-test
 echo "  Smoke test OK"
@@ -49,5 +54,6 @@ echo ""
 echo "Next steps:"
 echo "  1. Set AWS credentials: aws configure --profile nortal-swarm"
 echo "  2. Open this folder in Kiro IDE"
-echo "  3. Reload MCP servers (if needed) and see 'nortal-swarm' with 8 tools"
-echo "  4. Check README.md for demo instructions"
+echo "  3. Reload MCP servers in Kiro (step 3 patched mcp.json with absolute paths)"
+echo "  4. Confirm 'nortal-swarm' shows 8 tools in the MCP panel"
+echo "  5. Check README.md for demo instructions"

@@ -116,13 +116,15 @@ bash scripts/bootstrap.sh
 This will:
 - Install `uv` if needed
 - Run `uv sync` in `mcp-server/` (installs MCP + dependencies)
+- Patch `.kiro/settings/mcp.json` with **absolute paths** (Kiro does not expand `${workspaceFolder}`)
 - Run `--self-test` to verify configuration
 - Print next steps
 
 ### 4. Open in Kiro IDE
 
-1. **File → Open Folder** → select this repo's root
-2. Kiro automatically loads `.kiro/settings/mcp.json`
+1. **File → Open Folder** → select this repo's root (`KiroAgenticSwarmPOC`, not a parent folder)
+2. Kiro loads `.kiro/settings/mcp.json` (patched by bootstrap in step 3)
+3. **Reload MCP servers** if Kiro was already open during bootstrap
 3. In the MCP panel, you should see **`nortal-swarm`** with **8 tools** listed:
    - `swarm.start`
    - `swarm.architect`, `swarm.develop`, `swarm.test`, `swarm.review`
@@ -384,16 +386,36 @@ Each judge is a lightweight **Nova Lite** LLM that evaluates a specialist's outp
 
 ### "MCP server not connecting in Kiro"
 
+### "`Project directory ${workspaceFolder}/mcp-server does not exist`" or `No module named 'swarm_mcp'`
+
+Kiro **does not expand** `${workspaceFolder}` in `mcp.json` ([Kiro#5060](https://github.com/kirodotdev/Kiro/issues/5060)). The literal string is passed to `uv`, so the MCP server never starts.
+
+**Fix:** Re-run bootstrap (it patches `mcp.json` to use the venv Python with absolute paths):
+
+```powershell
+.\scripts\bootstrap.ps1
+```
+
+Then in Kiro: reload MCP servers. The `command` in `.kiro/settings/mcp.json` should look like `D:/.../mcp-server/.venv/Scripts/python.exe`, not `uv` with `${workspaceFolder}`.
+
+Also ensure you opened the **repo root** as the workspace folder (the directory that contains `mcp-server/`).
+
+### "`[Powers Debug] No powers.mcpServers section found`"
+
+Harmless Kiro internal warning. Ignore it if `[nortal-swarm] Successfully connected` appears in the log.
+
+### "MCP server not connecting in Kiro" (general)
+
 **Check:**
 
-1. MCP config: `.kiro/settings/mcp.json` exists and syntax is valid JSON
-2. uv installed: `uv --version` in terminal
-3. Port/stdio available: No other process blocking MCP stdio
+1. Bootstrap completed step 3 (`Patched .kiro/settings/mcp.json`)
+2. MCP config: `.kiro/settings/mcp.json` exists and `command` points to `mcp-server/.venv/.../python`
+3. Workspace folder is the repo root (contains `mcp-server/`)
 4. Logs: Kiro **View → Output** panel, select MCP channel
 
 **Quick test (command line):**
 
-Prefer `scripts/bootstrap.ps1` or `scripts/bootstrap.sh` — they load `aws-endpoints.env` before `--self-test`.
+Prefer `scripts/bootstrap.ps1` or `scripts/bootstrap.sh` - they patch `mcp.json` and load `aws-endpoints.env` before `--self-test`.
 
 Manual run (must set env vars first; Kiro injects these from `.kiro/settings/mcp.json`):
 
