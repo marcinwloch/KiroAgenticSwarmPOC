@@ -1,0 +1,50 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Build
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# uv
+__uv_lock__
+.uv/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local
+.env
+.env.local
+
+# CDK/Node (for reference only, not in demo)
+node_modules/
+cdk.out/
+.next/
+
+# Logs
+*.log

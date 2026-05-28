@@ -1,0 +1,7 @@
+fastapi>=0.115
+uvicorn[standard]>=0.32
+strands-agents>=1.41
+boto3>=1.35
+botocore[crt]>=1.35
+pydantic>=2.7
+structlog>=24.0

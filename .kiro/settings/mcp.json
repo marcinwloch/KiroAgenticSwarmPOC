@@ -1,0 +1,29 @@
+{
+  "mcpServers": {
+    "nortal-swarm": {
+      "command": "uv",
+      "args": ["run", "--project", "${workspaceFolder}/mcp-server", "python", "-m", "swarm_mcp.server"],
+      "env": {
+        "AWS_REGION": "eu-central-1",
+        "AWS_PROFILE": "nortal-swarm",
+        "SWARM_AGENTCORE_ENDPOINT": "arn:aws:bedrock-agentcore:eu-central-1:395833164797:runtime/nortal_swarm_runtime-xY5ryV6JbB",
+        "SWARM_GATEWAY_URL": "https://nortal-swarm-gateway-onelyg3h15.gateway.bedrock-agentcore.eu-central-1.amazonaws.com/mcp",
+        "SWARM_MEMORY_ARN": "arn:aws:bedrock-agentcore:eu-central-1:395833164797:memory/swarm_memory-ESsFsWEyZy",
+        "SWARM_SESSIONS_TABLE": "swarm-sessions",
+        "SWARM_INVOKE_TIMEOUT_SEC": "900",
+        "SWARM_STAGE_TIMEOUT_SEC": "300",
+        "PYTHONUNBUFFERED": "1"
+      },
+      "disabled": false,
+      "autoApprove": [
+        "swarm.start",
+        "swarm.architect",
+        "swarm.develop",
+        "swarm.test",
+        "swarm.review",
+        "swarm.status",
+        "swarm.plan"
+      ]
+    }
+  }
+}
